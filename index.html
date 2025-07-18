@@ -20,43 +20,40 @@
             box-sizing: border-box; /* Include padding in element's total width and height */
         }
 
-        /* Applying dark blue shades to relevant elements */
-        .bg-card-dark-blue { /* Custom class for the main card background */
-            background-color: #1a202c; /* A deep dark blue */
+        /* Applying extremely dark blue shades to relevant elements */
+        /* These colors are chosen to be very close to black, but still perceptibly blue */
+        .bg-subtle-dark-blue { /* For the main card and input backgrounds */
+            background-color: #0A0A10; /* Very dark blue, almost black */
         }
-        .border-card-dark-blue { /* Custom class for the main card border */
-            border-color: #2c3e50; /* A slightly darker blue for subtle border */
+        .border-subtle-dark-blue { /* For borders */
+            border-color: #121218; /* A shade darker, for subtle distinction */
         }
-        .bg-input-dark-blue { /* Custom class for input/textarea backgrounds */
-            background-color: #1a202c; /* Same deep dark blue as the card */
-        }
-        .border-input-dark-blue { /* Custom class for input/textarea borders */
-            border-color: #2c3e50; /* Same slightly darker blue as card border */
-        }
-        .text-white { /* Ensure all text remains white */
+
+        /* Ensure all text remains white */
+        .text-white {
             color: #ffffff;
         }
 
-        /* Specific Tailwind overrides for consistency */
+        /* Specific Tailwind overrides for consistency, using very dark blue/grey for UI elements */
         .bg-blue-600 { /* Primary button background */
-            background-color: #2a65a2; /* A more vibrant dark blue for buttons */
+            background-color: #121218; /* Very dark blue for buttons, blending with theme */
         }
         .hover\:bg-blue-700:hover { /* Button hover state */
-            background-color: #3b7bbd; /* Slightly lighter on hover */
+            background-color: #1A1A22; /* Slightly lighter on hover for feedback */
         }
         .focus\:ring-blue-500:focus { /* Focus ring for buttons and inputs */
-            --tw-ring-color: #4a90e2; /* A brighter blue for focus indication */
+            --tw-ring-color: #2c3e50; /* A slightly more visible dark blue for focus */
         }
         .bg-red-600 { /* Error message background */
-            background-color: #b73e3e; /* Darker red for error message */
+            background-color: #8b0000; /* Darker red for error message */
         }
         .bg-green-600 { /* Success message background */
-            background-color: #28a745; /* Standard green, or adjust if you want a blue-green */
+            background-color: #006400; /* Darker green for success message */
         }
     </style>
 </head>
 <body class="bg-black text-white">
-    <div class="bg-card-dark-blue p-8 rounded-lg shadow-xl w-full max-w-md mx-auto border border-card-dark-blue">
+    <div class="bg-subtle-dark-blue p-8 rounded-lg shadow-xl w-full max-w-md mx-auto border border-subtle-dark-blue">
         <h1 class="text-3xl font-bold text-white mb-6 text-center">Stealer Check</h1>
 
         <div class="mb-4">
@@ -64,7 +61,7 @@
             <textarea
                 id="messageInput"
                 rows="6"
-                class="w-full p-3 bg-input-dark-blue text-white rounded-md border border-input-dark-blue focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200 ease-in-out resize-y"
+                class="w-full p-3 bg-subtle-dark-blue text-white rounded-md border border-subtle-dark-blue focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200 ease-in-out resize-y"
                 placeholder="Enter Code"
             ></textarea>
         </div>
@@ -100,7 +97,7 @@
          */
         function showMessageBox(message, isError = false) {
             messageBox.textContent = message;
-            messageBox.classList.remove('hidden', 'bg-green-600', 'bg-red-600'); // Remove both to reset
+            messageBox.classList.remove('hidden', 'bg-green-600', 'bg-red-600');
             if (isError) {
                 messageBox.classList.add('bg-red-600');
             } else {
