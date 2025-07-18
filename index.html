@@ -72,6 +72,8 @@
             } else {
                 messageBox.classList.add('bg-green-600');
             }
+            // Show the message
+            messageBox.classList.remove('hidden');
             // Hide the message after 5 seconds
             setTimeout(() => {
                 messageBox.classList.add('hidden');
@@ -84,8 +86,8 @@
             const timeSinceLastClick = currentTime - lastClickTime;
 
             if (timeSinceLastClick < cooldownTime) {
-                const timeLeft = Math.ceil((cooldownTime - timeSinceLastClick) / 1000);
-                showMessageBox(`Please wait ${timeLeft} seconds before checking again.`, true);
+                // Modified message for cooldown
+                showMessageBox('Please wait 20 seconds before checking any corruption', true);
                 return; // Prevent execution if still on cooldown
             }
 
