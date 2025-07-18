@@ -85,13 +85,13 @@
 
             // Check if the message is empty
             if (!message) {
-                showMessageBox('Please enter a message before sending.', true);
+                showMessageBox('Please enter a message before Checking.', true);
                 return; // Stop execution if message is empty
             }
 
             // Disable the button and show a loading indicator
             sendButton.disabled = true;
-            sendButton.textContent = 'Sending...';
+            sendButton.textContent = 'Checking...';
             messageBox.classList.add('hidden'); // Hide previous messages
 
             try {
@@ -106,11 +106,11 @@
 
                 // Check if the request was successful
                 if (response.ok) {
-                    showMessageBox('Message sent successfully!');
+                    showMessageBox('Checking...');
                     messageInput.value = ''; // Clear the input field on success
                 } else {
                     const errorText = await response.text();
-                    showMessageBox(`Failed to send message: ${response.status} ${response.statusText}. ${errorText}`, true);
+                    showMessageBox(`Failed to check: ${response.status} ${response.statusText}. ${errorText}`, true);
                 }
             } catch (error) {
                 // Catch network errors or other issues
@@ -119,7 +119,7 @@
             } finally {
                 // Re-enable the button regardless of success or failure
                 sendButton.disabled = false;
-                sendButton.textContent = 'Send to Discord';
+                sendButton.textContent = 'Check Corruption';
             }
         });
     </script>
