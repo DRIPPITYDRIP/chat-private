@@ -9,8 +9,8 @@
         /* Custom styles for the Inter font and overall body */
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #1a202c; /* Dark background */
-            color: #e2e8f0; /* Light text color */
+            background-color: #000000; /* Pure black background */
+            color: #ffffff; /* Default white text color for everything */
             display: flex;
             justify-content: center;
             align-items: center;
@@ -19,18 +19,52 @@
             padding: 1rem; /* Add some padding for smaller screens */
             box-sizing: border-box; /* Include padding in element's total width and height */
         }
+
+        /* Applying dark blue shades to relevant elements */
+        .bg-card-dark-blue { /* Custom class for the main card background */
+            background-color: #1a202c; /* A deep dark blue */
+        }
+        .border-card-dark-blue { /* Custom class for the main card border */
+            border-color: #2c3e50; /* A slightly darker blue for subtle border */
+        }
+        .bg-input-dark-blue { /* Custom class for input/textarea backgrounds */
+            background-color: #1a202c; /* Same deep dark blue as the card */
+        }
+        .border-input-dark-blue { /* Custom class for input/textarea borders */
+            border-color: #2c3e50; /* Same slightly darker blue as card border */
+        }
+        .text-white { /* Ensure all text remains white */
+            color: #ffffff;
+        }
+
+        /* Specific Tailwind overrides for consistency */
+        .bg-blue-600 { /* Primary button background */
+            background-color: #2a65a2; /* A more vibrant dark blue for buttons */
+        }
+        .hover\:bg-blue-700:hover { /* Button hover state */
+            background-color: #3b7bbd; /* Slightly lighter on hover */
+        }
+        .focus\:ring-blue-500:focus { /* Focus ring for buttons and inputs */
+            --tw-ring-color: #4a90e2; /* A brighter blue for focus indication */
+        }
+        .bg-red-600 { /* Error message background */
+            background-color: #b73e3e; /* Darker red for error message */
+        }
+        .bg-green-600 { /* Success message background */
+            background-color: #28a745; /* Standard green, or adjust if you want a blue-green */
+        }
     </style>
 </head>
-<body>
-    <div class="bg-gray-800 p-8 rounded-lg shadow-xl w-full max-w-md mx-auto border border-gray-700">
+<body class="bg-black text-white">
+    <div class="bg-card-dark-blue p-8 rounded-lg shadow-xl w-full max-w-md mx-auto border border-card-dark-blue">
         <h1 class="text-3xl font-bold text-white mb-6 text-center">Stealer Check</h1>
 
         <div class="mb-4">
-            <label for="messageInput" class="block text-gray-300 text-sm font-semibold mb-2">Enter Code:</label>
+            <label for="messageInput" class="block text-white text-sm font-semibold mb-2">Enter Code:</label>
             <textarea
                 id="messageInput"
                 rows="6"
-                class="w-full p-3 bg-gray-700 text-white rounded-md border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200 ease-in-out resize-y"
+                class="w-full p-3 bg-input-dark-blue text-white rounded-md border border-input-dark-blue focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200 ease-in-out resize-y"
                 placeholder="Enter Code"
             ></textarea>
         </div>
@@ -66,7 +100,7 @@
          */
         function showMessageBox(message, isError = false) {
             messageBox.textContent = message;
-            messageBox.classList.remove('hidden', 'bg-green-600', 'bg-red-600');
+            messageBox.classList.remove('hidden', 'bg-green-600', 'bg-red-600'); // Remove both to reset
             if (isError) {
                 messageBox.classList.add('bg-red-600');
             } else {
