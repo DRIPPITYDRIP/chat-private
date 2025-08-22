@@ -3,27 +3,117 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GitHub Chat Room</title>
+    <title>Galaxy Flutes Chat Room</title>
     <!-- Use Tailwind CSS for a modern and responsive design -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Font for a clean look -->
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap">
     <style>
+        /* Custom styles for the Inter font and overall body */
         body {
             font-family: 'Inter', sans-serif;
-            @apply bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200 transition-colors duration-300;
+            background-color: #000000; /* Pure black background */
+            color: #ffffff; /* Default white text color for everything */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 1rem;
+            box-sizing: border-box;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* --- Custom Dark Blue Shades --- */
+        .custom-bg-darkblue-primary {
+            background-color: #0A0A10; /* Very dark blue, almost black */
+        }
+        .custom-border-darkblue {
+            border-color: #121218; /* A shade darker, for subtle distinction */
+        }
+        .custom-button-darkblue {
+            background-color: #1A1A22;
+        }
+        .custom-button-darkblue:hover {
+            background-color: #2c3e50;
+        }
+        .custom-focus-ring-blue {
+            --tw-ring-color: #2c3e50;
+        }
+
+        /* --- Star Animation Styles --- */
+        .stars {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .star {
+            position: absolute;
+            background-color: #ffffff;
+            border-radius: 50%;
+            opacity: 0;
+            animation: twinkle 3s infinite ease-in-out alternate,
+                       floatAround 65s infinite linear;
+        }
+
+        @keyframes twinkle {
+            0% { opacity: 0; transform: scale(0.5); }
+            5% { opacity: 1; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1); }
+            100% { opacity: 0; transform: scale(0.5); }
+        }
+
+        @keyframes floatAround {
+            0% { transform: translate(0, 0); }
+            25% { transform: translate(calc(var(--rand-x-1) * 1vw), calc(var(--rand-y-1) * 1vh)); }
+            50% { transform: translate(calc(var(--rand-x-2) * 1vw), calc(var(--rand-y-2) * 1vh)); }
+            75% { transform: translate(calc(var(--rand-x-3) * 1vw), calc(var(--rand-y-3) * 1vh)); }
+            100% { transform: translate(0, 0); }
+        }
+
+        /* --- Message bubbles (custom styles for this app) --- */
+        .message-bubble {
+            max-width: 75%;
+            padding: 0.75rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .self-message {
+            background-color: #2c3e50;
+            color: #e0e0e0;
+            border-bottom-right-radius: 0;
+        }
+
+        .other-message {
+            background-color: #1A1A22;
+            color: #ffffff;
+            border-bottom-left-radius: 0;
+        }
+
+        .error-message {
+            color: #ef4444; /* red-500 */
         }
     </style>
 </head>
-<body class="flex items-center justify-center min-h-screen p-4">
+<body class="text-white">
+
+    <!-- Starfield container -->
+    <div class="stars" id="star-container"></div>
 
     <!-- Main Chat Container -->
-    <div class="w-full max-w-2xl bg-white dark:bg-gray-800 rounded-2xl shadow-xl flex flex-col h-[80vh]">
+    <div class="w-full max-w-2xl custom-bg-darkblue-primary rounded-2xl shadow-xl flex flex-col h-[80vh] border custom-border-darkblue z-10">
 
         <!-- Chat Header -->
-        <div class="p-5 border-b border-gray-200 dark:border-gray-700 rounded-t-2xl bg-gray-50 dark:bg-gray-700">
-            <h1 class="text-2xl font-bold text-center">Open Chat Room</h1>
-            <p id="user-info-display" class="mt-2 text-sm text-center text-gray-500 dark:text-gray-400 truncate"></p>
+        <div class="p-5 border-b custom-border-darkblue rounded-t-2xl custom-bg-darkblue-primary">
+            <h1 class="text-2xl font-bold text-center text-white">Galactic Chat Room</h1>
+            <p id="user-info-display" class="mt-2 text-sm text-center text-gray-400 truncate"></p>
         </div>
 
         <!-- Messages Area -->
@@ -32,17 +122,17 @@
         </div>
 
         <!-- Username Input Form -->
-        <div id="username-form" class="p-4 border-t border-gray-200 dark:border-gray-700 flex items-center gap-2">
-            <input type="text" id="username-input" placeholder="Enter your name..." class="flex-1 p-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all">
-            <button id="set-username-button" class="bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-6 rounded-xl shadow-lg transition-all duration-200 ease-in-out">
+        <div id="username-form" class="p-4 border-t custom-border-darkblue flex items-center gap-2">
+            <input type="text" id="username-input" placeholder="Enter your name..." class="flex-1 p-3 rounded-xl border custom-border-darkblue custom-bg-darkblue-primary focus:outline-none focus:ring-2 custom-focus-ring-blue transition-all">
+            <button id="set-username-button" class="custom-button-darkblue hover:custom-button-darkblue text-white font-semibold py-3 px-6 rounded-xl shadow-lg transition-all duration-200 ease-in-out">
                 Start Chatting
             </button>
         </div>
 
         <!-- Message Input Area (hidden initially) -->
-        <div id="message-input-area" class="p-4 border-t border-gray-200 dark:border-gray-700 items-center gap-2 hidden">
-            <input type="text" id="message-input" placeholder="Type your message..." class="flex-1 p-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all">
-            <button id="send-button" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-xl shadow-lg transition-all duration-200 ease-in-out">
+        <div id="message-input-area" class="p-4 border-t custom-border-darkblue items-center gap-2 hidden">
+            <input type="text" id="message-input" placeholder="Type your message..." class="flex-1 p-3 rounded-xl border custom-border-darkblue custom-bg-darkblue-primary focus:outline-none focus:ring-2 custom-focus-ring-blue transition-all">
+            <button id="send-button" class="custom-button-darkblue hover:custom-button-darkblue text-white font-semibold py-3 px-6 rounded-xl shadow-lg transition-all duration-200 ease-in-out">
                 Send
             </button>
         </div>
@@ -55,15 +145,21 @@
         import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, query, onSnapshot, orderBy } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Global variables provided by the Canvas environment for Firestore
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+        // =========================================================================
+        // IMPORTANT: DO NOT MANUALLY PASTE YOUR FIREBASE CONFIG.
+        // =========================================================================
+        // This app will now automatically use the Firebase configuration and
+        // authentication token provided by the environment, which is the
+        // correct and secure way to initialize the app here.
+        //
+        // You can simply run the app, and it will work with your Firebase project
+        // as long as Anonymous Authentication is enabled.
+        const firebaseConfig = JSON.parse(__firebase_config);
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-chat-app';
         const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
 
         // --- App Initialization and Authentication ---
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-        const auth = getAuth(app);
+        let app, db, auth;
         
         let userId = null;
         let username = 'Anonymous';
@@ -81,11 +177,18 @@
         // Function to start the chat after username is set
         async function initializeChat() {
             try {
+                // Initialize Firebase services
+                app = initializeApp(firebaseConfig);
+                db = getFirestore(app);
+                auth = getAuth(app);
+                
+                // Sign in using the provided token or anonymously
                 if (initialAuthToken) {
                     await signInWithCustomToken(auth, initialAuthToken);
                 } else {
                     await signInAnonymously(auth);
                 }
+
                 userId = auth.currentUser.uid;
                 userInfoDisplay.textContent = `You are chatting as: ${username}`;
                 
@@ -116,8 +219,9 @@
                 });
 
             } catch (error) {
-                console.error("Firebase authentication failed:", error);
-                userInfoDisplay.textContent = 'Authentication failed. Please try again.';
+                console.error("Firebase initialization or authentication failed:", error);
+                userInfoDisplay.textContent = 'ERROR: Initialization failed. Please ensure Firebase is correctly configured.';
+                userInfoDisplay.classList.add('error-message');
             }
         }
 
@@ -129,11 +233,11 @@
             messageDiv.className = `flex ${isSelf ? 'justify-end' : 'justify-start'}`;
 
             const contentDiv = document.createElement('div');
-            contentDiv.className = `max-w-[75%] p-3 rounded-xl shadow-md ${isSelf ? 'bg-blue-600 text-white rounded-br-none' : 'bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-bl-none'}`;
+            contentDiv.className = `message-bubble ${isSelf ? 'self-message' : 'other-message'}`;
             
             const senderSpan = document.createElement('span');
-            senderSpan.className = `block text-xs font-semibold ${isSelf ? 'text-blue-100' : 'text-gray-600 dark:text-gray-400'}`;
-            senderSpan.textContent = isSelf ? `${username} (You)` : `${message.username || 'Anonymous'}`;
+            senderSpan.className = `block text-xs font-semibold ${isSelf ? 'text-gray-300' : 'text-gray-400'}`;
+            senderSpan.textContent = isSelf ? `${message.username || 'Anonymous'} (You)` : `${message.username || 'Anonymous'}`;
             
             const textP = document.createElement('p');
             textP.className = 'mt-1 text-sm break-words';
@@ -160,15 +264,40 @@
             };
 
             try {
+                // The correct Firestore collection path for a public chat room
                 await addDoc(collection(db, `artifacts/${appId}/public/data/chat_room`), messageData);
                 messageInput.value = "";
             } catch (error) {
                 console.error("Error sending message: ", error);
             }
         }
+        
+        // --- Starfield Generation ---
+        const numberOfStars = 80;
+        const starContainer = document.getElementById('star-container');
+
+        function createStars() {
+            for (let i = 0; i < numberOfStars; i++) {
+                const star = document.createElement('div');
+                star.classList.add('star');
+                const size = Math.random() * 3 + 1;
+                star.style.width = `${size}px`;
+                star.style.height = `${size}px`;
+                star.style.left = `${Math.random() * 100}vw`;
+                star.style.top = `${Math.random() * 100}vh`;
+                star.style.setProperty('--rand-x-1', (Math.random() * 100 - 50).toFixed(0));
+                star.style.setProperty('--rand-y-1', (Math.random() * 100 - 50).toFixed(0));
+                star.style.setProperty('--rand-x-2', (Math.random() * 100 - 50).toFixed(0));
+                star.style.setProperty('--rand-y-2', (Math.random() * 100 - 50).toFixed(0));
+                star.style.setProperty('--rand-x-3', (Math.random() * 100 - 50).toFixed(0));
+                star.style.setProperty('--rand-y-3', (Math.random() * 100 - 50).toFixed(0));
+                star.style.animationDelay = `${Math.random() * 0.5}s`;
+                star.style.animationDuration = `${Math.random() * 20 + 50}s`;
+                starContainer.appendChild(star);
+            }
+        }
 
         // --- Event Listeners for UI interaction ---
-        // These listeners are now placed outside the initializeChat function
         setUsernameButton.addEventListener('click', () => {
             const newUsername = usernameInput.value.trim();
             if (newUsername !== "") {
@@ -183,6 +312,9 @@
             }
         });
 
+        window.addEventListener('load', () => {
+            createStars();
+        });
     </script>
 </body>
 </html>
