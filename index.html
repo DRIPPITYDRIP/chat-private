@@ -23,22 +23,29 @@
         <!-- Chat Header -->
         <div class="p-5 border-b border-gray-200 dark:border-gray-700 rounded-t-2xl bg-gray-50 dark:bg-gray-700">
             <h1 class="text-2xl font-bold text-center">Open Chat Room</h1>
-            <p id="user-id-display" class="mt-2 text-sm text-center text-gray-500 dark:text-gray-400 truncate"></p>
+            <p id="user-info-display" class="mt-2 text-sm text-center text-gray-500 dark:text-gray-400 truncate"></p>
         </div>
 
-        <!-- Message Display Area -->
+        <!-- Messages Area -->
         <div id="messages" class="flex-1 p-5 overflow-y-auto space-y-4">
             <!-- Messages will be injected here by JavaScript -->
         </div>
 
-        <!-- Message Input Area -->
-        <div class="p-4 border-t border-gray-200 dark:border-gray-700 flex items-center gap-2">
+        <!-- Username Input Form -->
+        <div id="username-form" class="p-4 border-t border-gray-200 dark:border-gray-700 flex items-center gap-2">
+            <input type="text" id="username-input" placeholder="Enter your name..." class="flex-1 p-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all">
+            <button id="set-username-button" class="bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-6 rounded-xl shadow-lg transition-all duration-200 ease-in-out">
+                Start Chatting
+            </button>
+        </div>
+
+        <!-- Message Input Area (hidden initially) -->
+        <div id="message-input-area" class="p-4 border-t border-gray-200 dark:border-gray-700 items-center gap-2 hidden">
             <input type="text" id="message-input" placeholder="Type your message..." class="flex-1 p-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all">
             <button id="send-button" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-xl shadow-lg transition-all duration-200 ease-in-out">
                 Send
             </button>
         </div>
-
     </div>
 
     <!-- Firebase SDKs -->
@@ -54,50 +61,67 @@
         const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
 
         // --- App Initialization and Authentication ---
-        // 1. Initialize Firebase with the provided configuration
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const auth = getAuth(app);
         
-        // 2. Authenticate the user. Await the sign-in process before interacting with Firestore.
         let userId = null;
-        try {
-            if (initialAuthToken) {
-                await signInWithCustomToken(auth, initialAuthToken);
-            } else {
-                await signInAnonymously(auth);
-            }
-            userId = auth.currentUser.uid;
-            document.getElementById('user-id-display').textContent = `Your User ID: ${userId}`;
-        } catch (error) {
-            console.error("Firebase authentication failed:", error);
-            document.getElementById('user-id-display').textContent = 'Authentication failed. Please try again.';
-        }
+        let username = 'Anonymous';
 
         // --- UI Element References ---
         const messagesContainer = document.getElementById('messages');
+        const usernameInput = document.getElementById('username-input');
+        const setUsernameButton = document.getElementById('set-username-button');
+        const usernameForm = document.getElementById('username-form');
+        const messageInputArea = document.getElementById('message-input-area');
         const messageInput = document.getElementById('message-input');
         const sendButton = document.getElementById('send-button');
+        const userInfoDisplay = document.getElementById('user-info-display');
 
-        // --- Firestore Real-time Listener ---
-        // This sets up a listener to get new messages in real-time.
-        // The `onSnapshot` function listens for changes to the chat collection.
-        const chatRoomPath = `artifacts/${appId}/public/data/chat_room`;
-        const q = query(collection(db, chatRoomPath), orderBy('timestamp'));
-
-        const unsubscribe = onSnapshot(q, (snapshot) => {
-            snapshot.docChanges().forEach((change) => {
-                if (change.type === "added") {
-                    const message = change.doc.data();
-                    displayMessage(message);
+        // Function to start the chat after username is set
+        async function initializeChat() {
+            try {
+                if (initialAuthToken) {
+                    await signInWithCustomToken(auth, initialAuthToken);
+                } else {
+                    await signInAnonymously(auth);
                 }
-            });
-            // Auto-scroll to the bottom of the chat after a new message is added.
-            messagesContainer.scrollTop = messagesContainer.scrollHeight;
-        });
+                userId = auth.currentUser.uid;
+                userInfoDisplay.textContent = `You are chatting as: ${username}`;
+                
+                // Show the message input and hide the username form
+                usernameForm.classList.add('hidden');
+                messageInputArea.classList.remove('hidden');
+
+                // Set up the real-time listener for messages
+                const chatRoomPath = `artifacts/${appId}/public/data/chat_room`;
+                const q = query(collection(db, chatRoomPath), orderBy('timestamp'));
+
+                const unsubscribe = onSnapshot(q, (snapshot) => {
+                    snapshot.docChanges().forEach((change) => {
+                        if (change.type === "added") {
+                            const message = change.doc.data();
+                            displayMessage(message);
+                        }
+                    });
+                    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                });
+
+                // Attach event listeners for the chat inputs after the UI is visible
+                sendButton.addEventListener('click', sendMessage);
+                messageInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        sendMessage();
+                    }
+                });
+
+            } catch (error) {
+                console.error("Firebase authentication failed:", error);
+                userInfoDisplay.textContent = 'Authentication failed. Please try again.';
+            }
+        }
 
         // --- Message Display Function ---
-        // Creates a new message element and appends it to the messages container.
         function displayMessage(message) {
             const isSelf = message.userId === userId;
             
@@ -109,7 +133,7 @@
             
             const senderSpan = document.createElement('span');
             senderSpan.className = `block text-xs font-semibold ${isSelf ? 'text-blue-100' : 'text-gray-600 dark:text-gray-400'}`;
-            senderSpan.textContent = isSelf ? 'You' : `User: ${message.userId.substring(0, 8)}`; // Truncate user ID for display
+            senderSpan.textContent = isSelf ? `${username} (You)` : `${message.username || 'Anonymous'}`;
             
             const textP = document.createElement('p');
             textP.className = 'mt-1 text-sm break-words';
@@ -122,39 +146,43 @@
         }
 
         // --- Message Sending Function ---
-        // Pushes a new message to the Firestore database.
         async function sendMessage() {
             const text = messageInput.value.trim();
             if (text === "" || !userId) {
                 return;
             }
 
-            // Create the message object to be stored in Firestore
             const messageData = {
                 text: text,
                 userId: userId,
+                username: username,
                 timestamp: Date.now()
             };
 
             try {
-                // Add the new message document to the chat collection
-                await addDoc(collection(db, chatRoomPath), messageData);
-                messageInput.value = ""; // Clear the input after sending
+                await addDoc(collection(db, `artifacts/${appId}/public/data/chat_room`), messageData);
+                messageInput.value = "";
             } catch (error) {
                 console.error("Error sending message: ", error);
             }
         }
 
         // --- Event Listeners for UI interaction ---
-        // 1. Send button click handler
-        sendButton.addEventListener('click', sendMessage);
-
-        // 2. Enter key press handler on the input field
-        messageInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                sendMessage();
+        // These listeners are now placed outside the initializeChat function
+        setUsernameButton.addEventListener('click', () => {
+            const newUsername = usernameInput.value.trim();
+            if (newUsername !== "") {
+                username = newUsername;
+                initializeChat();
             }
         });
+
+        usernameInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                setUsernameButton.click();
+            }
+        });
+
     </script>
 </body>
 </html>
