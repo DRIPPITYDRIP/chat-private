@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Galaxy Flutes Chat Room</title>
+    <title>Galactic Chat Room</title>
     <!-- Use Tailwind CSS for a modern and responsive design -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Font for a clean look -->
@@ -142,21 +142,28 @@
     <script type="module">
         // Import necessary Firebase services from CDN
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, query, onSnapshot, orderBy } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // =========================================================================
-        // IMPORTANT: DO NOT MANUALLY PASTE YOUR FIREBASE CONFIG.
+        // IMPORTANT: PASTE YOUR FIREBASE CONFIGURATION HERE
         // =========================================================================
-        // This app will now automatically use the Firebase configuration and
-        // authentication token provided by the environment, which is the
-        // correct and secure way to initialize the app here.
-        //
-        // You can simply run the app, and it will work with your Firebase project
-        // as long as Anonymous Authentication is enabled.
-        const firebaseConfig = JSON.parse(__firebase_config);
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-chat-app';
-        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+        // This version is designed to work as a standalone file,
+        // so you MUST paste your Firebase configuration here.
+        // Go to your Firebase project, find "Project settings", and copy the config object.
+        const firebaseConfig = {
+            apiKey: "AIzaSyBweoTakP4apMzLFuMKvm_kYTne2abkkP4",
+            authDomain: "ayow-9ce76.firebaseapp.com",
+            projectId: "ayow-9ce76",
+            storageBucket: "ayow-9ce76.firebasestorage.app",
+            messagingSenderId: "302128797384",
+            appId: "1:302128797384:web:402a477d846786ea6cb7fd",
+            measurementId: "G-K9DJ5BFVT6"
+        };
+        
+        // This is a placeholder for your unique chat app ID.
+        // You can change it if you want, just make sure it's consistent.
+        const appId = "galactic-chat-room";
 
         // --- App Initialization and Authentication ---
         let app, db, auth;
@@ -177,19 +184,14 @@
         // Function to start the chat after username is set
         async function initializeChat() {
             try {
-                // Initialize Firebase services
+                // Initialize Firebase services only after a valid config is provided
                 app = initializeApp(firebaseConfig);
                 db = getFirestore(app);
                 auth = getAuth(app);
                 
-                // Sign in using the provided token or anonymously
-                if (initialAuthToken) {
-                    await signInWithCustomToken(auth, initialAuthToken);
-                } else {
-                    await signInAnonymously(auth);
-                }
-
-                userId = auth.currentUser.uid;
+                // Sign in anonymously to authenticate with Firestore
+                const userCredential = await signInAnonymously(auth);
+                userId = userCredential.user.uid;
                 userInfoDisplay.textContent = `You are chatting as: ${username}`;
                 
                 // Show the message input and hide the username form
@@ -220,7 +222,8 @@
 
             } catch (error) {
                 console.error("Firebase initialization or authentication failed:", error);
-                userInfoDisplay.textContent = 'ERROR: Initialization failed. Please ensure Firebase is correctly configured.';
+                // More helpful error message for the specific issue
+                userInfoDisplay.textContent = 'ERROR: Firebase initialization failed. Please check your Project Settings in the Firebase Console, especially the "Authentication" and "Web App" sections.';
                 userInfoDisplay.classList.add('error-message');
             }
         }
