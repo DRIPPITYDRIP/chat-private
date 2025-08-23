@@ -223,7 +223,7 @@
             } catch (error) {
                 console.error("Firebase initialization or authentication failed:", error);
                 // More helpful error message for the specific issue
-                userInfoDisplay.textContent = 'ERROR: Firebase initialization failed. Please check your Project Settings in the Firebase Console, especially the "Authentication" and "Web App" sections.';
+                userInfoDisplay.textContent = 'ERROR: Firebase initialization failed. Make sure you have **enabled Anonymous Authentication** in your Firebase Console.';
                 userInfoDisplay.classList.add('error-message');
             }
         }
