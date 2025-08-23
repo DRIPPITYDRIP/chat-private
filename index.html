@@ -97,6 +97,14 @@
             border-bottom-left-radius: 0;
         }
 
+        /* New style for system messages */
+        .system-message {
+            font-style: italic;
+            color: #9ca3af; /* gray-400 */
+            text-align: center;
+            margin: 0.5rem 0;
+        }
+
         .error-message {
             color: #ef4444; /* red-500 */
         }
@@ -198,6 +206,22 @@
                 usernameForm.classList.add('hidden');
                 messageInputArea.classList.remove('hidden');
 
+                // Send a system message to the chat that a user has joined
+                const joinMessage = {
+                    text: `${username} has joined the chat.`,
+                    userId: userId,
+                    type: 'system',
+                    timestamp: Date.now()
+                };
+                // Use a try/catch block to handle potential errors when sending the join message
+                try {
+                    const chatRoomPath = `artifacts/${appId}/public/data/chat_room`;
+                    await addDoc(collection(db, chatRoomPath), joinMessage);
+                } catch (e) {
+                    console.error("Failed to post join message:", e);
+                }
+
+
                 // Set up the real-time listener for messages
                 const chatRoomPath = `artifacts/${appId}/public/data/chat_room`;
                 const q = query(collection(db, chatRoomPath), orderBy('timestamp'));
@@ -230,6 +254,15 @@
 
         // --- Message Display Function ---
         function displayMessage(message) {
+            // Check for a special system message type
+            if (message.type === 'system') {
+                const systemDiv = document.createElement('div');
+                systemDiv.className = 'text-center system-message';
+                systemDiv.textContent = message.text;
+                messagesContainer.appendChild(systemDiv);
+                return; // Stop here and don't render a regular bubble
+            }
+            
             const isSelf = message.userId === userId;
             
             const messageDiv = document.createElement('div');
@@ -268,7 +301,8 @@
 
             try {
                 // The correct Firestore collection path for a public chat room
-                await addDoc(collection(db, `artifacts/${appId}/public/data/chat_room`), messageData);
+                const chatRoomPath = `artifacts/${appId}/public/data/chat_room`;
+                await addDoc(collection(db, chatRoomPath), messageData);
                 messageInput.value = "";
             } catch (error) {
                 console.error("Error sending message: ", error);
