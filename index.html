@@ -59,7 +59,7 @@
             border-radius: 50%;
             opacity: 0;
             animation: twinkle 3s infinite ease-in-out alternate,
-                       floatAround 65s infinite linear;
+                        floatAround 65s infinite linear;
         }
 
         @keyframes twinkle {
@@ -107,6 +107,12 @@
 
         .error-message {
             color: #ef4444; /* red-500 */
+        }
+        
+        /* New style for clickable links */
+        .link {
+            color: #3b82f6; /* A nice blue color */
+            text-decoration: underline;
         }
     </style>
 </head>
@@ -275,9 +281,44 @@
             senderSpan.className = `block text-xs font-semibold ${isSelf ? 'text-gray-300' : 'text-gray-400'}`;
             senderSpan.textContent = isSelf ? `${message.username || 'Anonymous'} (You)` : `${message.username || 'Anonymous'}`;
             
+            // --- NEW: Function to process message text and create links ---
+            function processLinks(text) {
+                // Regex to find links. It looks for common patterns:
+                // http:// or https:// followed by any characters, or
+                // www. followed by any characters, or
+                // a word followed by . followed by a common TLD (.com, .org, etc.)
+                const urlRegex = /(\b(?:https?:\/\/|www\.)\S+\b|\b\S+\.(?:com|org|net|gov|edu)\S*\b)/g;
+                
+                // Split the text by the found URLs
+                const parts = text.split(urlRegex);
+                
+                // Create a document fragment to hold the new elements
+                const fragment = document.createDocumentFragment();
+
+                parts.forEach(part => {
+                    // Check if the part is a URL
+                    if (part.match(urlRegex)) {
+                        const a = document.createElement('a');
+                        // Prepend 'https://' if it's missing for valid links
+                        let href = part.startsWith('http') ? part : `https://${part}`;
+                        a.href = href;
+                        a.textContent = part;
+                        a.target = '_blank'; // Open in a new tab
+                        a.rel = 'noopener noreferrer'; // Security best practice
+                        a.classList.add('link'); // Apply the blue color style
+                        fragment.appendChild(a);
+                    } else {
+                        // If it's not a URL, just add a text node
+                        fragment.appendChild(document.createTextNode(part));
+                    }
+                });
+                return fragment;
+            }
+
+            // Create a paragraph element and append the processed text/links
             const textP = document.createElement('p');
             textP.className = 'mt-1 text-sm break-words';
-            textP.textContent = message.text;
+            textP.appendChild(processLinks(message.text));
 
             contentDiv.appendChild(senderSpan);
             contentDiv.appendChild(textP);
